@@ -1,10 +1,10 @@
-# 🎯 Hệ Thống Điểm Danh & Chấm Công Bằng Khuôn Mặt (Face ID)
+#  Hệ Thống Điểm Danh & Chấm Công Bằng Khuôn Mặt (Face ID)
 
 Dự án Hệ thống Điểm danh & Chấm công tự động qua nhận diện khuôn mặt (Face ID) chạy trên nền tảng Web-based, kết nối trực tiếp Webcam máy tính, tối ưu cho quy mô doanh nghiệp vừa và nhỏ (< 50 nhân sự).
 
 ---
 
-## 🌟 Các Tính Năng Nổi Bật
+##  Các Tính Năng Nổi Bật
 
 1. **Màn hình Kiosk Điểm Danh Tự Động (Check-in / Check-out)**:
    - Nhận diện khuôn mặt thời gian thực qua webcam máy tính.
@@ -33,7 +33,7 @@ Dự án Hệ thống Điểm danh & Chấm công tự động qua nhận diện
 
 ---
 
-## 📁 Cấu Trúc Dự Án (Ổ D:)
+##  Cấu Trúc Dự Án (Ổ D:)
 
 ```
 D:\face_attendance/
@@ -61,7 +61,7 @@ D:\face_attendance/
 
 ---
 
-## 🚀 Hướng Dẫn Khởi Chạy
+##  Hướng Dẫn Khởi Chạy
 
 ### Cách 1: Click đúp (Khuyên dùng)
 - Mở thư mục `D:\face_attendance`
@@ -75,7 +75,7 @@ cd D:\face_attendance
 
 ---
 
-## 🌐 Các Địa Chỉ Truy Cập
+##  Các Địa Chỉ Truy Cập
 
 - **Màn hình Kiosk Điểm Danh**: [http://localhost:8000/](http://localhost:8000/)
 - **Trang Quản Trị (Admin)**: [http://localhost:8000/admin](http://localhost:8000/admin)
