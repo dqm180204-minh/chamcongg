@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face ID Kiosk - Hệ Thống Điểm Danh Thông Minh</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            900: '#14532d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @keyframes scanline {
+            0% { top: 0%; opacity: 0.8; }
+            50% { opacity: 0.3; }
+            100% { top: 100%; opacity: 0.8; }
+        }
+        .scanner-line {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #22c55e, #10b981, transparent);
+            box-shadow: 0 0 15px #22c55e;
+            animation: scanline 2.5s ease-in-out infinite;
+            pointer-events: none;
+        }
+        .pulse-box {
+            box-shadow: 0 0 25px rgba(34, 197, 94, 0.4);
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans select-none overflow-x-hidden">
+
+    <!-- Top Navigation Bar -->
+    <header class="bg-slate-900/80 backdrop-blur border-b border-slate-800 px-6 py-3 flex items-center justify-between z-20">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+                <i data-lucide="scan-face" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+                    FaceID Attendance Kiosk
+                    <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">AI Live</span>
+                </h1>
+                <p class="text-xs text-slate-400">Hệ thống điểm danh & chấm công khuôn mặt tự động</p>
+            </div>
+        </div>
+
+        <!-- Mode Selectors -->
+        <div class="flex items-center bg-slate-950/80 p-1 rounded-xl border border-slate-800">
+            <button id="btn-mode-auto" onclick="setMode('AUTO')" class="px-4 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all bg-emerald-600 text-white shadow-lg shadow-emerald-600/30">
+                <i data-lucide="zap" class="w-3.5 h-3.5"></i> Tự động (Auto)
+            </button>
+            <button id="btn-mode-in" onclick="setMode('CHECK_IN')" class="px-4 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all text-slate-400 hover:text-white">
+                <i data-lucide="log-in" class="w-3.5 h-3.5 text-blue-400"></i> Vào ca (Check-in)
+            </button>
+            <button id="btn-mode-out" onclick="setMode('CHECK_OUT')" class="px-4 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all text-slate-400 hover:text-white">
+                <i data-lucide="log-out" class="w-3.5 h-3.5 text-amber-400"></i> Tan ca (Check-out)
+            </button>
+        </div>
+
+        <!-- Clock & Admin Link -->
+        <div class="flex items-center gap-5">
+            <div class="text-right">
+                <div id="live-clock" class="text-xl font-bold font-mono text-white">00:00:00</div>
+                <div id="live-date" class="text-xs text-slate-400">Thứ Hai, 01/01/2026</div>
+            </div>
+            <a href="/admin" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-xl border border-slate-700 flex items-center gap-2 transition-all">
+                <i data-lucide="shield" class="w-4 h-4 text-emerald-400"></i>
+                Quản trị Admin
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-[1600px] w-full mx-auto">
+        
+        <!-- Left: Camera Viewport (8 cols) -->
+        <section class="lg:col-span-8 flex flex-col gap-4">
+            <div class="relative bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl flex-1 min-h-[520px] flex items-center justify-center">
+                
+                <!-- Video Element (Hidden Mirror or Visible) -->
+                <video id="webcam" autoplay playsinline muted class="absolute inset-0 w-full h-full object-cover -scale-x-100"></video>
+                
+                <!-- Canvas for Face Overlay & Bounding Box -->
+                <canvas id="overlay" class="absolute inset-0 w-full h-full object-cover -scale-x-100 pointer-events-none"></canvas>
+
+                <!-- Futuristic Scanner Effect -->
+                <div class="scanner-line"></div>
+
+                <!-- Camera Status Indicator -->
+                <div class="absolute top-4 left-4 z-10 flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/80 backdrop-blur border border-slate-700 text-xs">
+                    <span id="cam-dot" class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+                    <span id="cam-status" class="text-slate-300 font-medium">Đang quét camera...</span>
+                </div>
+
+                <!-- Camera device switcher -->
+                <div class="absolute top-4 right-4 z-10 flex items-center gap-2">
+                    <select id="camera-select" class="bg-slate-900/80 backdrop-blur border border-slate-700 text-slate-300 text-xs rounded-xl px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                        <option value="">Chọn Camera...</option>
+                    </select>
+                </div>
+
+                <!-- Instruction Hint at bottom of camera -->
+                <div class="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-2xl bg-slate-900/80 backdrop-blur border border-slate-800 text-xs text-slate-300 flex items-center gap-2">
+                    <i data-lucide="eye" class="w-4 h-4 text-emerald-400"></i>
+                    <span>Vui lòng đứng thẳng, nhìn rõ vào camera trong khoảng 0.5m - 1.2m</span>
+                </div>
+            </div>
+
+            <!-- Toast / Banner Result Modal -->
+            <div id="result-card" class="transition-all duration-300 transform opacity-0 translate-y-4 pointer-events-none p-4 rounded-2xl border bg-slate-900/95 backdrop-blur flex items-center gap-4 shadow-xl">
+                <div id="result-avatar-wrap" class="w-16 h-16 rounded-2xl bg-slate-800 border-2 border-emerald-500 overflow-hidden flex-shrink-0 flex items-center justify-center">
+                    <img id="result-avatar" src="" alt="Avatar" class="w-full h-full object-cover hidden">
+                    <i id="result-avatar-icon" data-lucide="user" class="w-8 h-8 text-slate-500"></i>
+                </div>
+                <div class="flex-1">
+                    <div class="flex items-center gap-2">
+                        <h3 id="result-name" class="text-base font-bold text-white">Nguyễn Văn A</h3>
+                        <span id="result-badge" class="px-2 py-0.5 rounded-md text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Check-in Đúng Giờ</span>
+                    </div>
+                    <p id="result-meta" class="text-xs text-slate-400 mt-0.5">Mã NV: NV001 • Phòng Kỹ Thuật • Lúc 08:25:10</p>
+                    <p id="result-msg" class="text-sm font-medium text-emerald-400 mt-1">Chúc bạn ngày làm việc vui vẻ!</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Right: Recent Attendance Logs & Quick Stats (4 cols) -->
+        <aside class="lg:col-span-4 flex flex-col gap-4">
+            
+            <!-- Quick Stats Card -->
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center">
+                        <i data-lucide="users" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-400 font-medium">Đã điểm danh</div>
+                        <div id="stat-checked-in" class="text-xl font-bold text-white">0</div>
+                    </div>
+                </div>
+                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center">
+                        <i data-lucide="clock-alert" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-400 font-medium">Đi muộn</div>
+                        <div id="stat-late" class="text-xl font-bold text-amber-400">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Today Logs -->
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 flex-1 flex flex-col shadow-xl overflow-hidden">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                    <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i data-lucide="history" class="w-4 h-4 text-emerald-400"></i>
+                        Nhật ký điểm danh hôm nay
+                    </h2>
+                    <span id="log-count-badge" class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-mono">0 lượt</span>
+                </div>
+
+                <!-- Logs Stream List -->
+                <div id="recent-logs-list" class="flex-1 overflow-y-auto mt-3 space-y-2.5 pr-1 text-xs">
+                    <!-- Log items rendered via JS -->
+                    <div class="text-center py-10 text-slate-500">
+                        <i data-lucide="inbox" class="w-8 h-8 mx-auto mb-2 opacity-50"></i>
+                        Chưa có lượt điểm danh nào hôm nay
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <!-- Kiosk JavaScript -->
+    <script src="/static/js/kiosk.js"></script>
+</body>
+</html>

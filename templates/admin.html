@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Trị Hệ Thống - Face ID Attendance</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans">
+
+    <!-- Top Admin Bar -->
+    <nav class="bg-slate-950 border-b border-slate-800 px-6 py-3 flex items-center justify-between sticky top-0 z-30">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+                <i data-lucide="shield-check" class="w-5 h-5"></i>
+            </div>
+            <div>
+                <h1 class="text-base font-bold text-white leading-tight">Admin Portal - Face ID Attendance</h1>
+                <p class="text-xs text-slate-400">Quản trị nhân sự, đăng ký mẫu khuôn mặt và xuất báo cáo</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <a href="/" target="_blank" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl flex items-center gap-2 shadow-lg shadow-emerald-600/20 transition-all">
+                <i data-lucide="external-link" class="w-4 h-4"></i>
+                Mở Kiosk Điểm Danh
+            </a>
+        </div>
+    </nav>
+
+    <!-- Sub-Navbar Navigation Tabs -->
+    <div class="bg-slate-950/60 border-b border-slate-800 px-6 py-2 sticky top-[57px] z-20 backdrop-blur">
+        <div class="max-w-7xl mx-auto flex items-center gap-2 overflow-x-auto text-xs font-medium">
+            <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="px-3.5 py-2 rounded-lg flex items-center gap-2 transition-all bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Tổng quan
+            </button>
+            <button onclick="switchTab('employees')" id="tab-btn-employees" class="px-3.5 py-2 rounded-lg flex items-center gap-2 transition-all text-slate-400 hover:text-white">
+                <i data-lucide="users" class="w-4 h-4"></i> Quản lý Nhân sự
+            </button>
+            <button onclick="switchTab('today')" id="tab-btn-today" class="px-3.5 py-2 rounded-lg flex items-center gap-2 transition-all text-slate-400 hover:text-white">
+                <i data-lucide="calendar-check" class="w-4 h-4"></i> Chấm công Hôm nay
+            </button>
+            <button onclick="switchTab('reports')" id="tab-btn-reports" class="px-3.5 py-2 rounded-lg flex items-center gap-2 transition-all text-slate-400 hover:text-white">
+                <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Báo cáo & Xuất Excel
+            </button>
+            <button onclick="switchTab('shifts')" id="tab-btn-shifts" class="px-3.5 py-2 rounded-lg flex items-center gap-2 transition-all text-slate-400 hover:text-white">
+                <i data-lucide="clock" class="w-4 h-4"></i> Ca làm việc
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-6 space-y-6">
+
+        <!-- ================= TAB 1: DASHBOARD ================= -->
+        <div id="tab-dashboard" class="space-y-6">
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-slate-950 border border-slate-800 p-5 rounded-2xl">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-slate-400 font-medium">Tổng nhân viên</span>
+                        <div class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center">
+                            <i data-lucide="users" class="w-4 h-4"></i>
+                        </div>
+                    </div>
+                    <div id="db-total-emp" class="text-2xl font-bold text-white mt-2">0</div>
+                    <div class="text-[11px] text-slate-400 mt-1">Đang hoạt động trong hệ thống</div>
+                </div>
+
+                <div class="bg-slate-950 border border-slate-800 p-5 rounded-2xl">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-slate-400 font-medium">Điểm danh hôm nay</span>
+                        <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                            <i data-lucide="check-circle" class="w-4 h-4"></i>
+                        </div>
+                    </div>
+                    <div id="db-checked-in" class="text-2xl font-bold text-emerald-400 mt-2">0</div>
+                    <div class="text-[11px] text-slate-400 mt-1">Đã thực hiện Check-in</div>
+                </div>
+
+                <div class="bg-slate-950 border border-slate-800 p-5 rounded-2xl">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-slate-400 font-medium">Đi muộn</span>
+                        <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center">
+                            <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+                        </div>
+                    </div>
+                    <div id="db-late" class="text-2xl font-bold text-amber-400 mt-2">0</div>
+                    <div class="text-[11px] text-slate-400 mt-1">Vượt quá thời gian cho phép</div>
+                </div>
+
+                <div class="bg-slate-950 border border-slate-800 p-5 rounded-2xl">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-slate-400 font-medium">Chưa điểm danh</span>
+                        <div class="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center">
+                            <i data-lucide="user-x" class="w-4 h-4"></i>
+                        </div>
+                    </div>
+                    <div id="db-absent" class="text-2xl font-bold text-rose-400 mt-2">0</div>
+                    <div class="text-[11px] text-slate-400 mt-1">Chưa có dữ liệu hôm nay</div>
+                </div>
+            </div>
+
+            <!-- Quick Instructions / System Card -->
+            <div class="bg-gradient-to-r from-emerald-950/40 via-slate-950 to-slate-950 border border-emerald-500/30 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+                <div>
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i data-lucide="sparkles" class="w-5 h-5 text-emerald-400"></i>
+                        Chào mừng đến với Hệ Thống Điểm Danh Face ID
+                    </h2>
+                    <p class="text-xs text-slate-300 mt-1 max-w-2xl">
+                        Để bắt đầu sử dụng, hãy thêm nhân viên tại tab <strong>Quản lý Nhân sự</strong>, sau đó chụp từ 2 - 3 ảnh khuôn mặt qua webcam máy tính. Sau đó mở màn hình <strong>Kiosk Điểm Danh</strong> để trải nghiệm quét mặt chấm công tức thì!
+                    </p>
+                </div>
+                <button onclick="openAddEmployeeModal()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-emerald-600/30 whitespace-nowrap">
+                    <i data-lucide="user-plus" class="w-4 h-4"></i>
+                    Thêm Nhân Viên Ngay
+                </button>
+            </div>
+        </div>
+
+        <!-- ================= TAB 2: QUẢN LÝ NHÂN SỰ ================= -->
+        <div id="tab-employees" class="hidden space-y-4">
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="relative w-full sm:w-80">
+                    <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="search-emp" oninput="filterEmployees()" placeholder="Tìm kiếm theo tên, mã NV, phòng ban..." class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                </div>
+                <button onclick="openAddEmployeeModal()" class="w-full sm:w-auto px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 transition-all">
+                    <i data-lucide="user-plus" class="w-4 h-4"></i>
+                    Thêm Nhân Viên Mới
+                </button>
+            </div>
+
+            <!-- Employees Table -->
+            <div class="bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-900/80 border-b border-slate-800 text-slate-400 uppercase tracking-wider">
+                            <tr>
+                                <th class="p-4">Nhân viên</th>
+                                <th class="p-4">Mã NV</th>
+                                <th class="p-4">Phòng ban</th>
+                                <th class="p-4">Vị trí</th>
+                                <th class="p-4 text-center">Mẫu Face ID</th>
+                                <th class="p-4">Ca làm việc</th>
+                                <th class="p-4 text-center">Trạng thái</th>
+                                <th class="p-4 text-right">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="employees-tbody" class="divide-y divide-slate-800/60">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= TAB 3: CHẤM CÔNG HÔM NAY ================= -->
+        <div id="tab-today" class="hidden space-y-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-sm font-bold text-white">Bảng Chấm Công Hôm Nay</h2>
+                    <p class="text-xs text-slate-400">Dữ liệu quét camera trực tiếp theo thời gian thực</p>
+                </div>
+                <button onclick="loadTodayTable()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs rounded-xl flex items-center gap-1.5 transition-all">
+                    <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Làm mới
+                </button>
+            </div>
+
+            <div class="bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-900/80 border-b border-slate-800 text-slate-400 uppercase tracking-wider">
+                            <tr>
+                                <th class="p-4">Nhân viên</th>
+                                <th class="p-4">Mã NV</th>
+                                <th class="p-4">Phòng ban</th>
+                                <th class="p-4 text-center">Giờ Check-in</th>
+                                <th class="p-4 text-center">Giờ Check-out</th>
+                                <th class="p-4 text-center">Tổng giờ làm</th>
+                                <th class="p-4 text-center">Trạng thái</th>
+                                <th class="p-4 text-center">Ảnh Snapshot</th>
+                            </tr>
+                        </thead>
+                        <tbody id="today-tbody" class="divide-y divide-slate-800/60">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= TAB 4: BÁO CÁO & XUẤT EXCEL ================= -->
+        <div id="tab-reports" class="hidden space-y-4">
+            <!-- Filter Form Card -->
+            <div class="bg-slate-950 border border-slate-800 p-5 rounded-2xl">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-[11px] font-medium text-slate-400 mb-1">Từ ngày</label>
+                        <input type="date" id="rep-from-date" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-medium text-slate-400 mb-1">Đến ngày</label>
+                        <input type="date" id="rep-to-date" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-medium text-slate-400 mb-1">Phòng ban</label>
+                        <select id="rep-dept" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                            <option value="ALL">Tất cả phòng ban</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end gap-2">
+                        <button onclick="queryReports()" class="flex-1 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-all">
+                            <i data-lucide="filter" class="w-4 h-4"></i> Lọc dữ liệu
+                        </button>
+                        <button onclick="exportExcelReport()" class="flex-1 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-600/20 transition-all">
+                            <i data-lucide="download" class="w-4 h-4"></i> Xuất Excel
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Report Results Table -->
+            <div class="bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-900/80 border-b border-slate-800 text-slate-400 uppercase tracking-wider">
+                            <tr>
+                                <th class="p-4">Ngày</th>
+                                <th class="p-4">Mã NV</th>
+                                <th class="p-4">Họ và Tên</th>
+                                <th class="p-4">Phòng ban</th>
+                                <th class="p-4 text-center">Vào (In)</th>
+                                <th class="p-4 text-center">Ra (Out)</th>
+                                <th class="p-4 text-center">Số giờ</th>
+                                <th class="p-4 text-center">Đi muộn</th>
+                                <th class="p-4 text-center">Về sớm</th>
+                                <th class="p-4 text-center">Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody id="report-tbody" class="divide-y divide-slate-800/60">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= TAB 5: CA LÀM VIỆC ================= -->
+        <div id="tab-shifts" class="hidden space-y-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-sm font-bold text-white">Cấu Hình Ca Làm Việc</h2>
+                    <p class="text-xs text-slate-400">Quy định giờ vào, giờ ra và thời gian ân hạn cho phép đi muộn</p>
+                </div>
+                <button onclick="openAddShiftModal()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl flex items-center gap-2 shadow-lg shadow-emerald-600/20 transition-all">
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i> Thêm Ca Mới
+                </button>
+            </div>
+
+            <div class="bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-900/80 border-b border-slate-800 text-slate-400 uppercase tracking-wider">
+                        <tr>
+                            <th class="p-4">Tên Ca Làm Việc</th>
+                            <th class="p-4 text-center">Giờ Bắt Đầu</th>
+                            <th class="p-4 text-center">Giờ Kết Thúc</th>
+                            <th class="p-4 text-center">Cho Phép Trễ</th>
+                            <th class="p-4 text-center">Chuẩn Giờ Công</th>
+                            <th class="p-4 text-right">Thao Tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="shifts-tbody" class="divide-y divide-slate-800/60">
+                        <!-- Populated via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ================= MODAL: THÊM / SỬA NHÂN VIÊN TÍCH HỢP QUÉT FACE ID ================= -->
+    <div id="modal-employee" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4 overflow-y-auto">
+        <div class="bg-slate-950 border border-slate-800 rounded-3xl max-w-4xl w-full p-6 space-y-5 shadow-2xl my-8">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                        <i data-lucide="user-plus" class="w-4 h-4"></i>
+                    </div>
+                    <div>
+                        <h3 id="modal-emp-title" class="text-base font-bold text-white">Đăng Ký Nhân Viên & Quét Mặt Face ID</h3>
+                        <p class="text-xs text-slate-400">Điền thông tin và quét mẫu khuôn mặt để bắt đầu chấm công</p>
+                    </div>
+                </div>
+                <button onclick="closeModal('modal-employee')" class="text-slate-400 hover:text-white p-1 rounded-lg">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form id="form-employee" onsubmit="saveEmployeeWithFace(event)" class="space-y-4 text-xs">
+                <input type="hidden" id="emp-edit-id" value="">
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- Cột trái: Thông tin nhân viên (5 cols) -->
+                    <div class="lg:col-span-6 space-y-3.5 border-b lg:border-b-0 lg:border-r border-slate-800 pb-4 lg:pb-0 lg:pr-6">
+                        <h4 class="text-xs font-bold text-slate-200 flex items-center gap-1.5 uppercase tracking-wider">
+                            <i data-lucide="id-card" class="w-4 h-4 text-emerald-400"></i>
+                            1. Thông Tin Cá Nhân
+                        </h4>
+                        
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-slate-400 font-medium mb-1">Mã NV *</label>
+                                <input type="text" id="emp-code" required placeholder="vd: NV001" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-emerald-500 font-mono font-bold">
+                            </div>
+                            <div>
+                                <label class="block text-slate-400 font-medium mb-1">Họ và Tên *</label>
+                                <input type="text" id="emp-name" required placeholder="Nguyễn Văn A" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-emerald-500 font-medium">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-slate-400 font-medium mb-1">Phòng Ban</label>
+                                <input type="text" id="emp-dept" placeholder="Kỹ Thuật / Kinh Doanh" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                            </div>
+                            <div>
+                                <label class="block text-slate-400 font-medium mb-1">Chức Vụ</label>
+                                <input type="text" id="emp-position" placeholder="Kỹ sư / Nhân viên" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-slate-400 font-medium mb-1">Số Điện Thoại</label>
+                                <input type="text" id="emp-phone" placeholder="0901234567" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                            </div>
+                            <div>
+                                <label class="block text-slate-400 font-medium mb-1">Email</label>
+                                <input type="email" id="emp-email" placeholder="nv@company.com" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-slate-400 font-medium mb-1">Ca Làm Việc Gán Kết</label>
+                            <select id="emp-shift-select" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                                <!-- Populated via JS -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Cột phải: Quét mặt Face ID trực tiếp (6 cols) -->
+                    <div class="lg:col-span-6 space-y-3 flex flex-col">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-xs font-bold text-slate-200 flex items-center gap-1.5 uppercase tracking-wider">
+                                <i data-lucide="scan-face" class="w-4 h-4 text-emerald-400"></i>
+                                2. Quét Mặt Face ID (Webcam)
+                            </h4>
+                            <span id="captured-faces-count" class="text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-semibold border border-emerald-500/30">
+                                0 mẫu mặt
+                            </span>
+                        </div>
+
+                        <!-- Khung Camera Live -->
+                        <div class="relative bg-black rounded-2xl overflow-hidden aspect-video border border-slate-800 flex items-center justify-center flex-1 min-h-[220px]">
+                            <video id="form-camera-video" autoplay playsinline muted class="w-full h-full object-cover -scale-x-100"></video>
+                            
+                            <!-- Khung viền chỉ dẫn khuôn mặt -->
+                            <div class="absolute inset-0 border-2 border-dashed border-emerald-500/40 rounded-full w-36 h-36 m-auto pointer-events-none flex items-center justify-center">
+                                <div class="w-2 h-2 rounded-full bg-emerald-400/80 animate-ping"></div>
+                            </div>
+
+                            <div class="absolute bottom-2 left-2 right-2 flex items-center justify-between px-2.5 py-1 rounded-xl bg-slate-950/80 backdrop-blur text-[11px] text-slate-300">
+                                <span id="form-cam-status">Đang mở camera...</span>
+                                <button type="button" onclick="initFormCamera()" class="text-emerald-400 hover:underline">Bật lại camera</button>
+                            </div>
+                        </div>
+
+                        <!-- Nút Chụp Ảnh Mẫu & Upload -->
+                        <div class="flex items-center gap-2">
+                            <button type="button" onclick="captureFaceInForm()" id="btn-form-snap" class="flex-1 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 transition-all">
+                                <i data-lucide="camera" class="w-4 h-4"></i>
+                                <span>Chụp Mẫu Khuôn Mặt</span>
+                            </button>
+                            <label class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl cursor-pointer flex items-center gap-1.5 transition-all" title="Tải ảnh từ máy">
+                                <i data-lucide="upload" class="w-4 h-4"></i>
+                                <span>Tải ảnh</span>
+                                <input type="file" accept="image/*" class="hidden" onchange="uploadFaceInForm(event)">
+                            </label>
+                        </div>
+
+                        <!-- Danh sách ảnh mẫu đã chụp tạm thời -->
+                        <div>
+                            <div class="text-[11px] text-slate-400 mb-1.5">Ảnh mẫu đã chụp (Nên chụp 2-3 góc: thẳng, hơi nghiêng):</div>
+                            <div id="form-captured-thumbnails" class="flex items-center gap-2 overflow-x-auto min-h-[52px] p-1.5 rounded-xl bg-slate-900 border border-slate-800">
+                                <span class="text-[11px] text-slate-500 italic px-2">Chưa chụp ảnh nào. Bấm nút "Chụp Mẫu Khuôn Mặt" ở trên.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Buttons -->
+                <div class="flex items-center justify-between pt-4 border-t border-slate-800">
+                    <span class="text-[11px] text-slate-400">⚡ Sau khi lưu, nhân viên có thể ra màn hình Kiosk để chấm công ngay lập tức.</span>
+                    <div class="flex items-center gap-3">
+                        <button type="button" onclick="closeModal('modal-employee')" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-medium">Hủy</button>
+                        <button type="submit" id="btn-save-emp-main" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-emerald-600/30 transition-all">
+                            <i data-lucide="check-circle" class="w-4 h-4"></i>
+                            <span>Lưu & Hoàn Tất Đăng Ký</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= MODAL: ĐĂNG KÝ MẪU KHUÔN MẶT (FACE ID) ================= -->
+    <div id="modal-face-register" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-slate-950 border border-slate-800 rounded-3xl max-w-2xl w-full p-6 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                <div>
+                    <h3 class="text-base font-bold text-white flex items-center gap-2">
+                        <i data-lucide="scan-face" class="w-5 h-5 text-emerald-400"></i>
+                        Đăng Ký Khuôn Mặt Face ID
+                    </h3>
+                    <p id="face-modal-emp-info" class="text-xs text-slate-400">Nhân viên: --</p>
+                </div>
+                <button onclick="closeFaceModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Choose Method: Webcam vs Upload -->
+            <div class="flex items-center gap-2 bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs">
+                <button onclick="switchFaceMode('webcam')" id="btn-face-tab-cam" class="flex-1 py-1.5 rounded-lg font-semibold bg-emerald-600 text-white flex items-center justify-center gap-1.5">
+                    <i data-lucide="camera" class="w-4 h-4"></i> Chụp trực tiếp từ Webcam
+                </button>
+                <button onclick="switchFaceMode('upload')" id="btn-face-tab-upload" class="flex-1 py-1.5 rounded-lg font-semibold text-slate-400 hover:text-white flex items-center justify-center gap-1.5">
+                    <i data-lucide="upload" class="w-4 h-4"></i> Tải ảnh lên từ máy tính
+                </button>
+            </div>
+
+            <!-- Webcam Capture Section -->
+            <div id="face-section-webcam" class="space-y-3">
+                <div class="relative bg-black rounded-2xl overflow-hidden aspect-video border border-slate-800 flex items-center justify-center">
+                    <video id="reg-video" autoplay playsinline muted class="w-full h-full object-cover -scale-x-100"></video>
+                    <!-- Guiding Circle -->
+                    <div class="absolute inset-0 border-2 border-dashed border-emerald-500/50 rounded-full w-48 h-48 m-auto pointer-events-none"></div>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-xs text-slate-400">💡 Gợi ý: Hãy nhìn thẳng, đủ ánh sáng và không đeo khẩu trang</span>
+                    <button onclick="captureFaceFromWebcam()" id="btn-capture-face" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl flex items-center gap-2 shadow-lg shadow-emerald-600/30 transition-all">
+                        <i data-lucide="camera" class="w-4 h-4"></i> Chụp Mẫu Khuôn Mặt
+                    </button>
+                </div>
+            </div>
+
+            <!-- File Upload Section -->
+            <div id="face-section-upload" class="hidden space-y-3 py-4">
+                <div class="border-2 border-dashed border-slate-800 hover:border-emerald-500/60 rounded-2xl p-8 text-center cursor-pointer transition-all" onclick="document.getElementById('face-file-input').click()">
+                    <i data-lucide="image-plus" class="w-10 h-10 text-emerald-400 mx-auto mb-2"></i>
+                    <p class="text-xs font-semibold text-slate-200">Bấm để chọn file ảnh từ máy tính</p>
+                    <p class="text-[11px] text-slate-500 mt-1">Hỗ trợ JPG, PNG (Ảnh rõ khuôn mặt, tỷ lệ chân dung)</p>
+                    <input type="file" id="face-file-input" accept="image/*" class="hidden" onchange="uploadFaceFile(event)">
+                </div>
+            </div>
+
+            <!-- Existing Face Samples List -->
+            <div class="pt-3 border-t border-slate-800">
+                <h4 class="text-xs font-bold text-slate-300 mb-2">Các mẫu khuôn mặt đã đăng ký:</h4>
+                <div id="face-samples-grid" class="flex items-center gap-3 overflow-x-auto py-1">
+                    <!-- Face avatars rendered via JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin JS -->
+    <script src="/static/js/admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# Database & Runtime Data
+data/*.db
+data/snapshots/*
+!data/snapshots/.gitkeep
+data/faces/*
+!data/faces/.gitkeep
+
+# Model weights (auto-downloaded on start)
+models_weights/*.onnx
+!models_weights/.gitkeep
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
