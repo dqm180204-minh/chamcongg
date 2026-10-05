@@ -33,7 +33,7 @@ Dự án Hệ thống Điểm danh & Chấm công tự động qua nhận diện
 
 ---
 
-##  Cấu Trúc Dự Án (Ổ D:)
+##  Cấu Trúc Dự Án 
 
 ```
 D:\face_attendance/
